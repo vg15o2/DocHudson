@@ -722,7 +722,7 @@ Hudson: [Full cinematic analysis -- Deakins' photography, Zimmer's score,
 
 ---
 
-## Tech Stack
+## Tech Sack? X0
 
 | Component | Technology | Why |
 |-----------|-----------|-----|
@@ -741,5 +741,4 @@ Hudson: [Full cinematic analysis -- Deakins' photography, Zimmer's score,
 | Tracing | JSONL file | Append-only, human-readable, easy to parse |
 
 ---
-
-Built from scratch. No LangChain. No LlamaIndex. No AutoGen. Just Python and a clear understanding of how agents actually work.
+FUN it was!
