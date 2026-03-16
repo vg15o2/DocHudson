@@ -81,16 +81,20 @@ class MovieSearchTool:
         return self._api_key
 
     def _get(self, endpoint: str, params: dict = None) -> dict:
-        """Make authenticated GET request to TMDB."""
+        """Make authenticated GET request to TMDB.
+        Falls back to verify=False if SSL handshake fails (Windows SSL inspection)."""
         api_key = self._get_api_key()
         params = params or {}
         params["api_key"] = api_key
 
-        resp = requests.get(
-            f"{self.TMDB_BASE}{endpoint}",
-            params=params,
-            timeout=15,
-        )
+        url = f"{self.TMDB_BASE}{endpoint}"
+
+        try:
+            resp = requests.get(url, params=params, timeout=15)
+        except (requests.exceptions.ConnectionError, requests.exceptions.SSLError):
+            # SSL inspection on some Windows machines breaks the handshake
+            resp = requests.get(url, params=params, timeout=15, verify=False)
+
         resp.raise_for_status()
         return resp.json()
 
