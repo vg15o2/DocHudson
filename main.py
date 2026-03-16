@@ -6,6 +6,7 @@ Usage:
   python main.py "search for X"           # single query mode
 """
 
+import os
 import sys
 
 from openai import OpenAI
@@ -38,7 +39,20 @@ def build_tools() -> ToolRegistry:
     return registry
 
 
+def check_setup():
+    """Check if books are downloaded and indexed."""
+    if not os.path.exists(config.BM25_INDEX_FILE):
+        console.print("[bold red]Books not set up yet.[/bold red]\n")
+        console.print("Run these commands first:")
+        console.print("  [cyan]python -m scripts.download_books[/cyan]  (downloads 50 books)")
+        console.print("  [cyan]python -m scripts.index_books[/cyan]     (builds search index)")
+        console.print()
+        sys.exit(1)
+
+
 def main():
+    check_setup()
+
     # Connect to Ollama
     client = OpenAI(
         base_url=config.OLLAMA_BASE_URL,
