@@ -6,6 +6,7 @@ This is the actual agent. It:
 2. Calls the LLM
 3. If tool call → execute tool → append result → loop back
 4. If text → return to user → done
+5. Emits trace events for the pixel art visualizer
 """
 
 import json
@@ -20,12 +21,13 @@ console = Console()
 
 class HudsonAgent:
     def __init__(self, client: OpenAI, tool_registry, model: str,
-                 max_steps: int = 20, temperature: float = 0.7):
+                 max_steps: int = 20, temperature: float = 0.7, tracer=None):
         self.client = client
         self.tools = tool_registry
         self.model = model
         self.max_steps = max_steps
         self.temperature = temperature
+        self.tracer = tracer
         self.messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         self.total_steps = 0
 
@@ -33,8 +35,14 @@ class HudsonAgent:
         """Run the agent loop for a user message. Returns the final text answer."""
         self.messages.append({"role": "user", "content": user_input})
 
+        if self.tracer:
+            self.tracer.user_message(user_input)
+
         for step in range(self.max_steps):
             self.total_steps += 1
+
+            if self.tracer:
+                self.tracer.thinking()
 
             # Call LLM with full context + tool schemas
             try:
@@ -70,8 +78,16 @@ class HudsonAgent:
                         f"[dim]{json.dumps(args, ensure_ascii=False)}[/dim]"
                     )
 
+                    # Emit trace event
+                    if self.tracer:
+                        self.tracer.tool_start(name, args)
+
                     # Execute the tool via registry
                     result = self.tools.execute(name, args)
+
+                    # Emit trace event
+                    if self.tracer:
+                        self.tracer.tool_done(name, len(result))
 
                     # Show truncated result
                     preview = result[:200] + "..." if len(result) > 200 else result
@@ -89,6 +105,10 @@ class HudsonAgent:
             # CASE 2: LLM returned text — this is the final answer
             answer = choice.message.content or ""
             self.messages.append({"role": "assistant", "content": answer})
+
+            if self.tracer:
+                self.tracer.answer(answer)
+
             return answer
 
         # Safety: max steps reached
@@ -97,6 +117,8 @@ class HudsonAgent:
     def chat(self):
         """Interactive chat loop."""
         console.print(Panel("Hudson Agent — type 'quit' to exit", style="cyan"))
+        console.print("[dim]Visualizer: python -m tracing.serve → http://localhost:8420/visualizer.html[/dim]")
+        console.print()
 
         while True:
             try:
@@ -114,3 +136,6 @@ class HudsonAgent:
             console.print()
             console.print(f"[bold cyan]Hudson:[/bold cyan] {answer}")
             console.print()
+
+            if self.tracer:
+                self.tracer.idle()

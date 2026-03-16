@@ -7,6 +7,11 @@ __pycache__/
 # Data (large files — rebuild on each machine)
 data/books/raw/
 data/bm25_index.pkl
+data/vector_index.pkl
+tracing/trace.jsonl
+
+# Workspace (user-generated files)
+workspace/
 
 # OS
 .DS_Store
