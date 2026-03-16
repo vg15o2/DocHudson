@@ -1,0 +1,13 @@
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+
+# Data (large files — rebuild on each machine)
+data/books/raw/
+data/bm25_index.pkl
+
+# OS
+.DS_Store
+Thumbs.db

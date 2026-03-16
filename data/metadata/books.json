@@ -1,0 +1,352 @@
+[
+  {
+    "gutenberg_id": 1342,
+    "title": "Pride and Prejudice",
+    "author": "Jane Austen",
+    "genre": "fiction",
+    "file": "data/books/raw/1342.txt"
+  },
+  {
+    "gutenberg_id": 11,
+    "title": "Alice's Adventures in Wonderland",
+    "author": "Lewis Carroll",
+    "genre": "fiction",
+    "file": "data/books/raw/11.txt"
+  },
+  {
+    "gutenberg_id": 1661,
+    "title": "The Adventures of Sherlock Holmes",
+    "author": "Arthur Conan Doyle",
+    "genre": "fiction",
+    "file": "data/books/raw/1661.txt"
+  },
+  {
+    "gutenberg_id": 84,
+    "title": "Frankenstein",
+    "author": "Mary Shelley",
+    "genre": "fiction",
+    "file": "data/books/raw/84.txt"
+  },
+  {
+    "gutenberg_id": 1260,
+    "title": "Jane Eyre",
+    "author": "Charlotte Bronte",
+    "genre": "fiction",
+    "file": "data/books/raw/1260.txt"
+  },
+  {
+    "gutenberg_id": 2701,
+    "title": "Moby Dick",
+    "author": "Herman Melville",
+    "genre": "fiction",
+    "file": "data/books/raw/2701.txt"
+  },
+  {
+    "gutenberg_id": 98,
+    "title": "A Tale of Two Cities",
+    "author": "Charles Dickens",
+    "genre": "fiction",
+    "file": "data/books/raw/98.txt"
+  },
+  {
+    "gutenberg_id": 1952,
+    "title": "The Yellow Wallpaper",
+    "author": "Charlotte Perkins Gilman",
+    "genre": "fiction",
+    "file": "data/books/raw/1952.txt"
+  },
+  {
+    "gutenberg_id": 174,
+    "title": "The Picture of Dorian Gray",
+    "author": "Oscar Wilde",
+    "genre": "fiction",
+    "file": "data/books/raw/174.txt"
+  },
+  {
+    "gutenberg_id": 345,
+    "title": "Dracula",
+    "author": "Bram Stoker",
+    "genre": "fiction",
+    "file": "data/books/raw/345.txt"
+  },
+  {
+    "gutenberg_id": 1080,
+    "title": "A Modest Proposal",
+    "author": "Jonathan Swift",
+    "genre": "fiction",
+    "file": "data/books/raw/1080.txt"
+  },
+  {
+    "gutenberg_id": 76,
+    "title": "Adventures of Huckleberry Finn",
+    "author": "Mark Twain",
+    "genre": "fiction",
+    "file": "data/books/raw/76.txt"
+  },
+  {
+    "gutenberg_id": 219,
+    "title": "Heart of Darkness",
+    "author": "Joseph Conrad",
+    "genre": "fiction",
+    "file": "data/books/raw/219.txt"
+  },
+  {
+    "gutenberg_id": 5200,
+    "title": "Metamorphosis",
+    "author": "Franz Kafka",
+    "genre": "fiction",
+    "file": "data/books/raw/5200.txt"
+  },
+  {
+    "gutenberg_id": 2554,
+    "title": "Crime and Punishment",
+    "author": "Fyodor Dostoevsky",
+    "genre": "fiction",
+    "file": "data/books/raw/2554.txt"
+  },
+  {
+    "gutenberg_id": 28054,
+    "title": "The Brothers Karamazov",
+    "author": "Fyodor Dostoevsky",
+    "genre": "fiction",
+    "file": "data/books/raw/28054.txt"
+  },
+  {
+    "gutenberg_id": 600,
+    "title": "Notes from the Underground",
+    "author": "Fyodor Dostoevsky",
+    "genre": "fiction",
+    "file": "data/books/raw/600.txt"
+  },
+  {
+    "gutenberg_id": 2600,
+    "title": "War and Peace",
+    "author": "Leo Tolstoy",
+    "genre": "fiction",
+    "file": "data/books/raw/2600.txt"
+  },
+  {
+    "gutenberg_id": 1399,
+    "title": "Anna Karenina",
+    "author": "Leo Tolstoy",
+    "genre": "fiction",
+    "file": "data/books/raw/1399.txt"
+  },
+  {
+    "gutenberg_id": 4300,
+    "title": "Ulysses",
+    "author": "James Joyce",
+    "genre": "fiction",
+    "file": "data/books/raw/4300.txt"
+  },
+  {
+    "gutenberg_id": 16,
+    "title": "Peter Pan",
+    "author": "J.M. Barrie",
+    "genre": "fiction",
+    "file": "data/books/raw/16.txt"
+  },
+  {
+    "gutenberg_id": 1232,
+    "title": "The Prince",
+    "author": "Niccolo Machiavelli",
+    "genre": "philosophy",
+    "file": "data/books/raw/1232.txt"
+  },
+  {
+    "gutenberg_id": 3600,
+    "title": "Thus Spake Zarathustra",
+    "author": "Friedrich Nietzsche",
+    "genre": "philosophy",
+    "file": "data/books/raw/3600.txt"
+  },
+  {
+    "gutenberg_id": 4363,
+    "title": "Beyond Good and Evil",
+    "author": "Friedrich Nietzsche",
+    "genre": "philosophy",
+    "file": "data/books/raw/4363.txt"
+  },
+  {
+    "gutenberg_id": 5827,
+    "title": "The Problems of Philosophy",
+    "author": "Bertrand Russell",
+    "genre": "philosophy",
+    "file": "data/books/raw/5827.txt"
+  },
+  {
+    "gutenberg_id": 1497,
+    "title": "The Republic",
+    "author": "Plato",
+    "genre": "philosophy",
+    "file": "data/books/raw/1497.txt"
+  },
+  {
+    "gutenberg_id": 10616,
+    "title": "Meditations",
+    "author": "Marcus Aurelius",
+    "genre": "philosophy",
+    "file": "data/books/raw/10616.txt"
+  },
+  {
+    "gutenberg_id": 55,
+    "title": "The Wonderful Wizard of Oz",
+    "author": "L. Frank Baum",
+    "genre": "fiction",
+    "file": "data/books/raw/55.txt"
+  },
+  {
+    "gutenberg_id": 120,
+    "title": "Treasure Island",
+    "author": "Robert Louis Stevenson",
+    "genre": "fiction",
+    "file": "data/books/raw/120.txt"
+  },
+  {
+    "gutenberg_id": 1400,
+    "title": "Great Expectations",
+    "author": "Charles Dickens",
+    "genre": "fiction",
+    "file": "data/books/raw/1400.txt"
+  },
+  {
+    "gutenberg_id": 25344,
+    "title": "The Scarlet Letter",
+    "author": "Nathaniel Hawthorne",
+    "genre": "fiction",
+    "file": "data/books/raw/25344.txt"
+  },
+  {
+    "gutenberg_id": 2591,
+    "title": "Grimms' Fairy Tales",
+    "author": "Brothers Grimm",
+    "genre": "fiction",
+    "file": "data/books/raw/2591.txt"
+  },
+  {
+    "gutenberg_id": 244,
+    "title": "A Study in Scarlet",
+    "author": "Arthur Conan Doyle",
+    "genre": "fiction",
+    "file": "data/books/raw/244.txt"
+  },
+  {
+    "gutenberg_id": 1184,
+    "title": "The Count of Monte Cristo",
+    "author": "Alexandre Dumas",
+    "genre": "fiction",
+    "file": "data/books/raw/1184.txt"
+  },
+  {
+    "gutenberg_id": 35,
+    "title": "The Time Machine",
+    "author": "H.G. Wells",
+    "genre": "fiction",
+    "file": "data/books/raw/35.txt"
+  },
+  {
+    "gutenberg_id": 36,
+    "title": "The War of the Worlds",
+    "author": "H.G. Wells",
+    "genre": "fiction",
+    "file": "data/books/raw/36.txt"
+  },
+  {
+    "gutenberg_id": 43,
+    "title": "The Strange Case of Dr. Jekyll and Mr. Hyde",
+    "author": "Robert Louis Stevenson",
+    "genre": "fiction",
+    "file": "data/books/raw/43.txt"
+  },
+  {
+    "gutenberg_id": 46,
+    "title": "A Christmas Carol",
+    "author": "Charles Dickens",
+    "genre": "fiction",
+    "file": "data/books/raw/46.txt"
+  },
+  {
+    "gutenberg_id": 1251,
+    "title": "Le Morte d'Arthur",
+    "author": "Thomas Malory",
+    "genre": "fiction",
+    "file": "data/books/raw/1251.txt"
+  },
+  {
+    "gutenberg_id": 2500,
+    "title": "Siddhartha",
+    "author": "Hermann Hesse",
+    "genre": "fiction",
+    "file": "data/books/raw/2500.txt"
+  },
+  {
+    "gutenberg_id": 2814,
+    "title": "Dubliners",
+    "author": "James Joyce",
+    "genre": "fiction",
+    "file": "data/books/raw/2814.txt"
+  },
+  {
+    "gutenberg_id": 158,
+    "title": "Emma",
+    "author": "Jane Austen",
+    "genre": "fiction",
+    "file": "data/books/raw/158.txt"
+  },
+  {
+    "gutenberg_id": 161,
+    "title": "Sense and Sensibility",
+    "author": "Jane Austen",
+    "genre": "fiction",
+    "file": "data/books/raw/161.txt"
+  },
+  {
+    "gutenberg_id": 1727,
+    "title": "The Odyssey",
+    "author": "Homer",
+    "genre": "poetry",
+    "file": "data/books/raw/1727.txt"
+  },
+  {
+    "gutenberg_id": 6130,
+    "title": "The Iliad",
+    "author": "Homer",
+    "genre": "poetry",
+    "file": "data/books/raw/6130.txt"
+  },
+  {
+    "gutenberg_id": 1041,
+    "title": "Shakespeare's Sonnets",
+    "author": "William Shakespeare",
+    "genre": "poetry",
+    "file": "data/books/raw/1041.txt"
+  },
+  {
+    "gutenberg_id": 1524,
+    "title": "Hamlet",
+    "author": "William Shakespeare",
+    "genre": "drama",
+    "file": "data/books/raw/1524.txt"
+  },
+  {
+    "gutenberg_id": 1533,
+    "title": "Macbeth",
+    "author": "William Shakespeare",
+    "genre": "drama",
+    "file": "data/books/raw/1533.txt"
+  },
+  {
+    "gutenberg_id": 1513,
+    "title": "Romeo and Juliet",
+    "author": "William Shakespeare",
+    "genre": "drama",
+    "file": "data/books/raw/1513.txt"
+  },
+  {
+    "gutenberg_id": 23,
+    "title": "Narrative of the Life of Frederick Douglass",
+    "author": "Frederick Douglass",
+    "genre": "biography",
+    "file": "data/books/raw/23.txt"
+  }
+]
