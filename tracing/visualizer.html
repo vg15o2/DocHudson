@@ -23,21 +23,45 @@
     border-radius: 8px;
   }
   #status {
-    margin-top: 16px;
-    font-size: 14px;
+    margin-top: 12px;
+    font-size: 13px;
     color: #8b949e;
     text-align: center;
-    min-height: 40px;
+    min-height: 20px;
+    max-width: 640px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   #status .tool { color: #58a6ff; }
   #status .msg { color: #3fb950; }
   #status .thinking { color: #d29922; }
+  #status .skill { color: #bc8cff; }
+  #status .agent { color: #f778ba; }
   h1 {
     font-size: 18px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     color: #58a6ff;
     letter-spacing: 2px;
   }
+  #activity-log {
+    margin-top: 8px;
+    width: 640px;
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 11px;
+    color: #6e7681;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 6px 10px;
+    background: #0d1117;
+  }
+  #activity-log .log-tool { color: #58a6ff; }
+  #activity-log .log-agent { color: #f778ba; }
+  #activity-log .log-skill { color: #bc8cff; }
+  #activity-log .log-msg { color: #3fb950; }
+  #activity-log .log-time { color: #484f58; }
+  #activity-log div { margin: 1px 0; }
 </style>
 </head>
 <body>
@@ -45,13 +69,13 @@
 <h1>HUDSON AGENT MONITOR</h1>
 <canvas id="c" width="640" height="400"></canvas>
 <div id="status">Waiting for agent activity...</div>
+<div id="activity-log"></div>
 
 <script>
 // ============================================================
-//  PIXEL ART SPRITES — defined as 2D color arrays
+//  PIXEL ART SPRITES
 // ============================================================
 
-// Colors
 const SKIN = '#FFDAB9';
 const HAIR = '#4A3728';
 const SHIRT = '#3B82F6';
@@ -72,15 +96,16 @@ const PLANT = '#2EA043';
 const BOOK1 = '#E06060';
 const BOOK2 = '#6088E0';
 const BOOK3 = '#60C060';
+const BOOK4 = '#d29922';
 const SHELF = '#6E4B1E';
 const BUB_BG = '#ffffff';
 const BUB_BORDER = '#555566';
-const BUB_GREEN = '#3fb950';
-const BUB_AMBER = '#d29922';
+const VINYL = '#1a1a2e';
+const RECORD = '#333';
+const FILM_REEL = '#555';
+const T = '';
 
-const T = '';  // transparent
-
-// Hudson character — front facing, sitting (12x16)
+// Hudson — sitting idle
 const CHAR_SIT_0 = [
   [T,T,T,T,HAIR,HAIR,HAIR,HAIR,T,T,T,T],
   [T,T,T,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,T,T,T],
@@ -98,7 +123,7 @@ const CHAR_SIT_0 = [
   [T,T,PANTS,PANTS,PANTS,T,T,PANTS,PANTS,PANTS,T,T],
 ];
 
-// Typing frame — arms extended
+// Typing — arms extended
 const CHAR_SIT_1 = [
   [T,T,T,T,HAIR,HAIR,HAIR,HAIR,T,T,T,T],
   [T,T,T,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,T,T,T],
@@ -116,7 +141,7 @@ const CHAR_SIT_1 = [
   [T,T,PANTS,PANTS,PANTS,T,T,PANTS,PANTS,PANTS,T,T],
 ];
 
-// Reading frame — hand up
+// Reading — hand up
 const CHAR_READ = [
   [T,T,T,T,HAIR,HAIR,HAIR,HAIR,T,T,T,T],
   [T,T,T,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,T,T,T],
@@ -134,7 +159,7 @@ const CHAR_READ = [
   [T,T,PANTS,PANTS,PANTS,T,T,PANTS,PANTS,PANTS,T,T],
 ];
 
-// Standing idle frame (16 tall)
+// Standing idle
 const CHAR_STAND = [
   [T,T,T,T,HAIR,HAIR,HAIR,HAIR,T,T,T,T],
   [T,T,T,HAIR,HAIR,HAIR,HAIR,HAIR,HAIR,T,T,T],
@@ -164,11 +189,37 @@ const ROWS = 12;
 const W = COLS * TILE * ZOOM;
 const H = ROWS * TILE * ZOOM;
 
-// Character position (tile coords) — desk is at col 8-10, row 4
 const DESK_COL = 8;
 const DESK_ROW = 4;
-const CHAR_COL = 9;    // character sits in front of desk
+const CHAR_COL = 9;
 const CHAR_ROW = 5;
+
+// ============================================================
+//  TOOL / AGENT LABELS & COLORS
+// ============================================================
+const TOOL_LABELS = {
+  'search_books':       { label: 'Searching books',    icon: '\u{1F4DA}', color: '#E06060' },
+  'web_search':         { label: 'Searching web',      icon: '\u{1F310}', color: '#58a6ff' },
+  'search_movies':      { label: 'Searching movies',   icon: '\u{1F3AC}', color: '#d29922' },
+  'get_movie_details':  { label: 'Movie details',      icon: '\u{1F3AC}', color: '#d29922' },
+  'search_music':       { label: 'Searching music',    icon: '\u{1F3B5}', color: '#bc8cff' },
+  'get_artist_details': { label: 'Artist details',     icon: '\u{1F3B5}', color: '#bc8cff' },
+  'calculator':         { label: 'Calculating',        icon: '\u{1F522}', color: '#3fb950' },
+  'run_python':         { label: 'Running code',       icon: '\u{1F4BB}', color: '#3fb950' },
+  'read_file':          { label: 'Reading file',       icon: '\u{1F4C4}', color: '#8b949e' },
+  'write_file':         { label: 'Writing file',       icon: '\u{1F4BE}', color: '#8b949e' },
+  'list_files':         { label: 'Listing files',      icon: '\u{1F4C2}', color: '#8b949e' },
+  'use_skill':          { label: 'Running skill',      icon: '\u{26A1}',  color: '#bc8cff' },
+  'delegate':           { label: 'Delegating',         icon: '\u{1F916}', color: '#f778ba' },
+};
+
+const AGENT_COLORS = {
+  'BookAgent':      '#E06060',
+  'Spillberg':      '#d29922',
+  'Ozzy':           '#bc8cff',
+  'ResearchAgent':  '#58a6ff',
+  'CodeAgent':      '#3fb950',
+};
 
 // ============================================================
 //  CANVAS SETUP
@@ -176,26 +227,43 @@ const CHAR_ROW = 5;
 const canvas = document.getElementById('c');
 canvas.width = W;
 canvas.height = H;
-canvas.style.width = (W / 2) + 'px';   // CSS half size for sharpness
+canvas.style.width = (W / 2) + 'px';
 canvas.style.height = (H / 2) + 'px';
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
 const statusEl = document.getElementById('status');
+const logEl = document.getElementById('activity-log');
 
 // ============================================================
 //  STATE
 // ============================================================
-let agentState = 'idle';  // idle, typing, reading, thinking
+let agentState = 'idle';
 let currentTool = '';
-let bubbleType = 'none';  // none, thinking, done, tool
+let currentAgent = '';
+let bubbleType = 'none';
 let bubbleText = '';
+let bubbleColor = '#58a6ff';
 let animFrame = 0;
 let animTimer = 0;
 let screenOn = false;
+let screenColor = SCREEN_ON;
 let lastEventIdx = 0;
-let idleTimer = 0;
-let breathFrame = 0;
+let toolCount = 0;
+
+// ============================================================
+//  ACTIVITY LOG
+// ============================================================
+function addLog(html) {
+  const d = document.createElement('div');
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US', { hour12: false });
+  d.innerHTML = `<span class="log-time">${ts}</span> ${html}`;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+  // Keep max 50 entries
+  while (logEl.children.length > 50) logEl.removeChild(logEl.firstChild);
+}
 
 // ============================================================
 //  SPRITE RENDERER
@@ -228,28 +296,43 @@ function drawRoom() {
   ctx.fillRect(0, 0, W, 2 * TILE * ZOOM);
   ctx.fillStyle = WALL_TOP;
   ctx.fillRect(0, 0, W, 4 * ZOOM);
-
-  // Wall line
   ctx.fillStyle = '#30363d';
   ctx.fillRect(0, 2 * TILE * ZOOM - ZOOM, W, ZOOM);
 
-  // Bookshelf on wall (cols 2-4, row 1)
+  // Bookshelf (cols 2-4, row 0.5)
   const bx = 2 * TILE * ZOOM;
   const by = 0.5 * TILE * ZOOM;
-  // Shelf frame
   ctx.fillStyle = SHELF;
   ctx.fillRect(bx, by, 3 * TILE * ZOOM, 1.3 * TILE * ZOOM);
   ctx.fillStyle = '#5A3D14';
   ctx.fillRect(bx + ZOOM, by + ZOOM, 3 * TILE * ZOOM - 2*ZOOM, 1.3 * TILE * ZOOM - 2*ZOOM);
-  // Books
-  const books = [BOOK1, BOOK2, BOOK3, BOOK1, BOOK2, BOOK3, BOOK1, BOOK2];
+  const books = [BOOK1, BOOK2, BOOK3, BOOK4, BOOK1, BOOK2, BOOK3, BOOK4];
   for (let i = 0; i < books.length; i++) {
     ctx.fillStyle = books[i];
     ctx.fillRect(bx + 4*ZOOM + i * 5*ZOOM, by + 3*ZOOM, 4*ZOOM, 12*ZOOM);
   }
-  // Shelf divider
   ctx.fillStyle = SHELF;
   ctx.fillRect(bx, by + 16*ZOOM, 3 * TILE * ZOOM, 2*ZOOM);
+
+  // Vinyl record on wall (col 14, row 0.5) — music decoration
+  const vx = 14 * TILE * ZOOM;
+  const vy = 0.3 * TILE * ZOOM;
+  ctx.fillStyle = '#222';
+  ctx.fillRect(vx, vy, 10*ZOOM, 10*ZOOM);
+  ctx.fillStyle = '#444';
+  ctx.fillRect(vx + ZOOM, vy + ZOOM, 8*ZOOM, 8*ZOOM);
+  ctx.fillStyle = '#bc8cff';
+  ctx.fillRect(vx + 3*ZOOM, vy + 3*ZOOM, 4*ZOOM, 4*ZOOM);
+
+  // Film reel on wall (col 6, row 0.3) — movie decoration
+  const fx = 6 * TILE * ZOOM;
+  const fy = 0.2 * TILE * ZOOM;
+  ctx.fillStyle = FILM_REEL;
+  ctx.fillRect(fx, fy, 8*ZOOM, 8*ZOOM);
+  ctx.fillStyle = '#888';
+  ctx.fillRect(fx + 2*ZOOM, fy + 2*ZOOM, 4*ZOOM, 4*ZOOM);
+  ctx.fillStyle = '#d29922';
+  ctx.fillRect(fx + 3*ZOOM, fy + 3*ZOOM, 2*ZOOM, 2*ZOOM);
 
   // Plant (col 16, row 2)
   const px = 16 * TILE * ZOOM;
@@ -264,60 +347,72 @@ function drawRoom() {
   // Desk
   const dx = DESK_COL * TILE * ZOOM;
   const dy = DESK_ROW * TILE * ZOOM;
-  // Desk top surface
   ctx.fillStyle = DESK_TOP;
   ctx.fillRect(dx - 4*ZOOM, dy, 3 * TILE * ZOOM + 8*ZOOM, 4*ZOOM);
-  // Desk body
   ctx.fillStyle = DESK;
   ctx.fillRect(dx, dy + 4*ZOOM, 3 * TILE * ZOOM, TILE * ZOOM - 4*ZOOM);
-  // Desk legs
   ctx.fillStyle = '#6E4B1E';
   ctx.fillRect(dx + 2*ZOOM, dy + TILE*ZOOM, 3*ZOOM, 6*ZOOM);
   ctx.fillRect(dx + 3*TILE*ZOOM - 5*ZOOM, dy + TILE*ZOOM, 3*ZOOM, 6*ZOOM);
 
-  // Monitor on desk
+  // Monitor
   const mx = (DESK_COL + 1) * TILE * ZOOM;
   const my = dy - 10 * ZOOM;
   ctx.fillStyle = MONITOR;
   ctx.fillRect(mx, my, TILE * ZOOM, 12 * ZOOM);
-  ctx.fillStyle = screenOn ? SCREEN_ON : SCREEN_OFF;
+  ctx.fillStyle = screenOn ? screenColor : SCREEN_OFF;
   ctx.fillRect(mx + ZOOM, my + ZOOM, TILE * ZOOM - 2*ZOOM, 10*ZOOM);
-  // Monitor stand
   ctx.fillStyle = '#333';
   ctx.fillRect(mx + 6*ZOOM, my + 12*ZOOM, 4*ZOOM, 3*ZOOM);
   ctx.fillRect(mx + 4*ZOOM, my + 14*ZOOM, 8*ZOOM, 2*ZOOM);
 
-  // Screen content when on
+  // Screen content
   if (screenOn) {
     ctx.fillStyle = '#0d1117';
     ctx.fillRect(mx + 2*ZOOM, my + 2*ZOOM, TILE*ZOOM - 4*ZOOM, 8*ZOOM);
-    // Fake text lines
-    const colors = ['#58a6ff', '#3fb950', '#d29922', '#c9d1d9'];
-    for (let i = 0; i < 4; i++) {
-      ctx.fillStyle = colors[i];
-      const lineW = (6 + Math.sin(Date.now()/400 + i*2) * 3) * ZOOM;
-      ctx.fillRect(mx + 3*ZOOM, my + 3*ZOOM + i*2*ZOOM, lineW, ZOOM);
+
+    if (agentState === 'typing' || agentState === 'thinking') {
+      // Animated code lines with tool-specific color
+      const colors = [screenColor, '#c9d1d9', screenColor, '#8b949e'];
+      for (let i = 0; i < 4; i++) {
+        ctx.fillStyle = colors[i];
+        const lineW = (6 + Math.sin(Date.now()/400 + i*2) * 3) * ZOOM;
+        ctx.fillRect(mx + 3*ZOOM, my + 3*ZOOM + i*2*ZOOM, lineW, ZOOM);
+      }
+    } else if (agentState === 'reading') {
+      // Loading dots
+      const dots = Math.floor(Date.now() / 400) % 4;
+      ctx.fillStyle = screenColor;
+      for (let i = 0; i < dots; i++) {
+        ctx.fillRect(mx + 4*ZOOM + i*3*ZOOM, my + 5*ZOOM, 2*ZOOM, 2*ZOOM);
+      }
     }
   }
 
-  // Chair (in front of desk)
+  // Chair
   const cx = CHAR_COL * TILE * ZOOM;
   const cy = CHAR_ROW * TILE * ZOOM + 8*ZOOM;
   ctx.fillStyle = CHAIR;
-  // Seat
   ctx.fillRect(cx + ZOOM, cy + 6*ZOOM, 10*ZOOM, 4*ZOOM);
-  // Back
   ctx.fillRect(cx + ZOOM, cy - 2*ZOOM, 2*ZOOM, 8*ZOOM);
   ctx.fillRect(cx + 9*ZOOM, cy - 2*ZOOM, 2*ZOOM, 8*ZOOM);
   ctx.fillRect(cx + ZOOM, cy - 2*ZOOM, 10*ZOOM, 2*ZOOM);
-  // Legs
   ctx.fillStyle = '#333';
   ctx.fillRect(cx + 2*ZOOM, cy + 10*ZOOM, 2*ZOOM, 4*ZOOM);
   ctx.fillRect(cx + 8*ZOOM, cy + 10*ZOOM, 2*ZOOM, 4*ZOOM);
+
+  // Tool counter badge (bottom-left)
+  if (toolCount > 0) {
+    ctx.fillStyle = '#21262d';
+    ctx.fillRect(2*ZOOM, H - 14*ZOOM, 40*ZOOM, 10*ZOOM);
+    ctx.fillStyle = '#8b949e';
+    ctx.font = `${3*ZOOM}px monospace`;
+    ctx.fillText(`Tools: ${toolCount}`, 4*ZOOM, H - 6*ZOOM);
+  }
 }
 
 // ============================================================
-//  SPEECH BUBBLE RENDERER
+//  SPEECH BUBBLE
 // ============================================================
 function drawBubble(x, y, type, text) {
   if (type === 'none') return;
@@ -328,11 +423,10 @@ function drawBubble(x, y, type, text) {
   const bx = x - bw/2 + 6*ZOOM;
   const by = y - bh - 6*ZOOM;
 
-  // Background
+  // Background with slight alpha
   ctx.fillStyle = BUB_BG;
   ctx.fillRect(bx, by, bw, bh);
-  // Border
-  ctx.strokeStyle = BUB_BORDER;
+  ctx.strokeStyle = bubbleColor;
   ctx.lineWidth = ZOOM;
   ctx.strokeRect(bx, by, bw, bh);
   // Tail
@@ -340,24 +434,27 @@ function drawBubble(x, y, type, text) {
   ctx.fillRect(bx + bw/2 - 2*ZOOM, by + bh, 4*ZOOM, 3*ZOOM);
 
   // Icon
-  let iconColor = BUB_GREEN;
-  let icon = '✓';
-  if (type === 'thinking') { iconColor = BUB_AMBER; icon = '◆'; }
-  if (type === 'tool')     { iconColor = '#58a6ff'; icon = '⚡'; }
+  let icon = '\u2713';  // checkmark
+  if (type === 'thinking') icon = '\u25C6';  // diamond
+  if (type === 'tool')     icon = '\u26A1';  // lightning
+  if (type === 'skill')    icon = '\u2726';  // star
+  if (type === 'agent')    icon = '\u25B6';  // play
 
-  ctx.fillStyle = iconColor;
+  ctx.fillStyle = bubbleColor;
   ctx.font = `${3*ZOOM}px monospace`;
   ctx.fillText(icon, bx + 2*ZOOM, by + bh - 3*ZOOM);
 
   // Text
   ctx.fillStyle = '#1a1a2e';
   ctx.font = `${2.5*ZOOM}px monospace`;
-  ctx.fillText(text, bx + 6*ZOOM, by + bh - 3*ZOOM);
+  const maxChars = Math.floor((bw - 8*ZOOM) / (2.5*ZOOM * 0.6));
+  const displayText = text.length > maxChars ? text.slice(0, maxChars) + '..' : text;
+  ctx.fillText(displayText, bx + 6*ZOOM, by + bh - 3*ZOOM);
   ctx.restore();
 }
 
 // ============================================================
-//  CHARACTER RENDERER
+//  CHARACTER
 // ============================================================
 function drawCharacter() {
   const x = CHAR_COL * TILE * ZOOM;
@@ -366,7 +463,6 @@ function drawCharacter() {
   let sprite;
   if (agentState === 'idle') {
     sprite = CHAR_STAND;
-    // Subtle breathing — shift y by 1 pixel
     const breathOffset = Math.sin(Date.now() / 800) > 0.3 ? ZOOM : 0;
     drawSprite(sprite, x, y - 4*ZOOM + breathOffset, ZOOM);
   } else if (agentState === 'typing') {
@@ -377,7 +473,6 @@ function drawCharacter() {
     drawSprite(sprite, x, y, ZOOM);
   }
 
-  // Bubble
   drawBubble(x, y, bubbleType, bubbleText);
 }
 
@@ -390,7 +485,6 @@ function gameLoop(timestamp) {
   const dt = (timestamp - lastTime) / 1000;
   lastTime = timestamp;
 
-  // Animation timer
   animTimer += dt;
   if (agentState === 'typing' && animTimer > 0.3) {
     animFrame = (animFrame + 1) % 4;
@@ -401,10 +495,8 @@ function gameLoop(timestamp) {
     animTimer = 0;
   }
 
-  // Screen follows state
   screenOn = (agentState !== 'idle');
 
-  // Draw
   ctx.clearRect(0, 0, W, H);
   drawRoom();
   drawCharacter();
@@ -415,69 +507,88 @@ function gameLoop(timestamp) {
 requestAnimationFrame(gameLoop);
 
 // ============================================================
-//  EVENT POLLING — reads trace.jsonl
+//  EVENT HANDLING
 // ============================================================
-async function pollTrace() {
-  try {
-    const resp = await fetch('/trace.jsonl?t=' + Date.now());
-    if (!resp.ok) return;
-    const text = await resp.text();
-    const lines = text.trim().split('\n').filter(Boolean);
-
-    // Process only new events
-    for (let i = lastEventIdx; i < lines.length; i++) {
-      try {
-        const event = JSON.parse(lines[i]);
-        handleEvent(event);
-      } catch (e) {}
-    }
-    lastEventIdx = lines.length;
-  } catch (e) {}
-}
-
 function handleEvent(event) {
   switch (event.type) {
     case 'user_message':
       agentState = 'thinking';
       bubbleType = 'thinking';
       bubbleText = 'Thinking...';
-      statusEl.innerHTML = `<span class="msg">User:</span> ${escHtml(event.message)}`;
+      bubbleColor = '#d29922';
+      screenColor = '#d29922';
+      toolCount = 0;
+      statusEl.innerHTML = `<span class="msg">User:</span> ${esc(event.message || '')}`;
+      addLog(`<span class="log-msg">User:</span> ${esc((event.message || '').slice(0, 80))}`);
       break;
 
-    case 'tool_start':
+    case 'tool_start': {
       agentState = 'typing';
-      bubbleType = 'tool';
-      const toolLabel = {
-        'search_books': 'Searching books',
-        'web_search': 'Searching web',
-        'search_movies': 'Searching movies',
-        'get_movie_details': 'Getting movie info',
-      }[event.tool] || event.tool;
-      bubbleText = toolLabel;
-      currentTool = event.tool;
-      statusEl.innerHTML = `<span class="tool">Tool: ${escHtml(event.tool)}</span> ${escHtml(JSON.stringify(event.args))}`;
+      const toolName = event.tool || '';
+      const info = TOOL_LABELS[toolName] || TOOL_LABELS[toolName.split('/').pop()] || { label: toolName, icon: '\u2699', color: '#58a6ff' };
+
+      // Check if this is a subagent tool call (format: "AgentName/tool_name")
+      const isSubagent = toolName.includes('/');
+      const agentName = isSubagent ? toolName.split('/')[0] : '';
+
+      bubbleType = isSubagent ? 'agent' : 'tool';
+      bubbleText = isSubagent ? `${agentName}: ${info.label}` : info.label;
+      bubbleColor = isSubagent ? (AGENT_COLORS[agentName] || '#f778ba') : info.color;
+      screenColor = bubbleColor;
+      currentTool = toolName;
+      toolCount++;
+
+      if (toolName === 'delegate') {
+        const delegateTo = (event.args || {}).agent_name || '?';
+        bubbleType = 'agent';
+        bubbleText = `Delegating to ${delegateTo}`;
+        bubbleColor = AGENT_COLORS[delegateTo] || '#f778ba';
+        screenColor = bubbleColor;
+        statusEl.innerHTML = `<span class="agent">Delegate: ${esc(delegateTo)}</span> ${esc((event.args || {}).task || '').slice(0, 60)}`;
+        addLog(`<span class="log-agent">\u25B6 Delegate to ${esc(delegateTo)}</span>`);
+      } else if (toolName === 'use_skill') {
+        const skillName = (event.args || {}).skill_name || '?';
+        bubbleType = 'skill';
+        bubbleText = `Skill: ${skillName}`;
+        bubbleColor = '#bc8cff';
+        screenColor = '#bc8cff';
+        statusEl.innerHTML = `<span class="skill">Skill: ${esc(skillName)}</span> topic: ${esc((event.args || {}).topic || '')}`;
+        addLog(`<span class="log-skill">\u26A1 Skill: ${esc(skillName)}</span> ${esc((event.args || {}).topic || '')}`);
+      } else {
+        const argsStr = JSON.stringify(event.args || {});
+        const prefix = isSubagent ? `<span class="agent">[${esc(agentName)}]</span> ` : '';
+        statusEl.innerHTML = `${prefix}<span class="tool">${esc(info.label)}</span> ${esc(argsStr).slice(0, 60)}`;
+        addLog(`${prefix}<span class="log-tool">${esc(info.label)}</span> ${esc(argsStr).slice(0, 50)}`);
+      }
       break;
+    }
 
     case 'tool_done':
       agentState = 'reading';
       bubbleType = 'thinking';
       bubbleText = 'Processing...';
+      bubbleColor = '#d29922';
       break;
 
     case 'thinking':
       agentState = 'thinking';
       bubbleType = 'thinking';
       bubbleText = 'Thinking...';
+      bubbleColor = '#d29922';
+      screenColor = '#d29922';
       break;
 
     case 'answer':
       agentState = 'idle';
       bubbleType = 'none';
       bubbleText = '';
-      statusEl.innerHTML = `<span class="msg">Hudson answered</span> (${escHtml(event.text)}...)`;
+      const preview = (event.text || '').slice(0, 60);
+      statusEl.innerHTML = `<span class="msg">Hudson answered</span>`;
+      addLog(`<span class="log-msg">\u2713 Answer</span> (${toolCount} tool calls)`);
       // Show done bubble briefly
       bubbleType = 'done';
       bubbleText = 'Done!';
+      bubbleColor = '#3fb950';
       setTimeout(() => { bubbleType = 'none'; bubbleText = ''; }, 3000);
       break;
 
@@ -490,11 +601,30 @@ function handleEvent(event) {
   }
 }
 
-function escHtml(s) {
+function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// Poll every 300ms
+// ============================================================
+//  POLLING
+// ============================================================
+async function pollTrace() {
+  try {
+    const resp = await fetch('/trace.jsonl?t=' + Date.now());
+    if (!resp.ok) return;
+    const text = await resp.text();
+    const lines = text.trim().split('\n').filter(Boolean);
+
+    for (let i = lastEventIdx; i < lines.length; i++) {
+      try {
+        const event = JSON.parse(lines[i]);
+        handleEvent(event);
+      } catch (e) {}
+    }
+    lastEventIdx = lines.length;
+  } catch (e) {}
+}
+
 setInterval(pollTrace, 300);
 </script>
 </body>
