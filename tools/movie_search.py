@@ -115,7 +115,14 @@ class MovieSearchTool:
 
     def _search_person_movies(self, query: str, max_results: int) -> str:
         """Search for a person (director/actor) and return their movies."""
-        data = self._get("/search/person", {"query": query})
+        # Strip common non-name words that confuse person search
+        noise = {"films", "movies", "director", "directed", "actor", "actress",
+                 "filmography", "best", "rated", "top", "all", "by", "of", "the"}
+        cleaned = " ".join(w for w in query.split() if w.lower() not in noise).strip()
+        if not cleaned:
+            cleaned = query
+
+        data = self._get("/search/person", {"query": cleaned})
         results = data.get("results", [])
         if not results:
             return None
@@ -178,12 +185,22 @@ class MovieSearchTool:
 
             # If no movie results, try person search (director/actor name)
             if not results:
-                person_result = self._search_person_movies(query, max_results)
-                if person_result:
-                    return person_result
+                try:
+                    person_result = self._search_person_movies(query, max_results)
+                    if person_result:
+                        return person_result
+                except requests.exceptions.RequestException:
+                    pass
                 return "No movies found. Try different search terms."
 
         except requests.exceptions.RequestException as e:
+            # Movie search failed — still try person search as fallback
+            try:
+                person_result = self._search_person_movies(query, max_results)
+                if person_result:
+                    return person_result
+            except requests.exceptions.RequestException:
+                pass
             return f"Movie search failed: {type(e).__name__}: {e}"
 
         lines = []
@@ -208,8 +225,12 @@ class MovieSearchTool:
 
         return "\n\n".join(lines)
 
-    def get_details(self, movie_id: int) -> str:
+    def get_details(self, movie_id: int = None, tmdb_id: int = None) -> str:
         """Get detailed info about a specific movie."""
+        # Accept both movie_id and tmdb_id (LLM sometimes uses either)
+        movie_id = movie_id or tmdb_id
+        if not movie_id:
+            return "Error: provide movie_id (TMDB ID from search_movies results)"
         try:
             movie = self._get(f"/movie/{movie_id}", {"append_to_response": "credits"})
         except requests.exceptions.RequestException as e:
