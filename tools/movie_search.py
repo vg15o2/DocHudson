@@ -16,6 +16,11 @@ import requests
 # Suppress InsecureRequestWarning when using verify=False fallback
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
+# Persistent session — reuses TCP connections instead of opening new ones each time.
+# This dramatically reduces SSL handshake failures on Windows with antivirus.
+_session = requests.Session()
+_session.verify = False
+
 
 # --- Tool Schema (what the LLM sees) ---
 
@@ -25,7 +30,9 @@ MOVIE_SEARCH_SCHEMA = {
         "Search for movies using The Movie Database (TMDB). "
         "Returns movie titles, release years, ratings, overviews, and genres. "
         "Use this when the user asks about movies, films, directors, actors, "
-        "movie recommendations, or anything cinema-related."
+        "movie recommendations, or anything cinema-related. "
+        "For searching by director or actor name, this tool will automatically "
+        "look up the person and find their movies."
     ),
     "parameters": {
         "type": "object",
@@ -66,7 +73,7 @@ MOVIE_DETAILS_SCHEMA = {
 # --- Tool Implementation ---
 
 class MovieSearchTool:
-    """TMDB API wrapper with lazy loading."""
+    """TMDB API wrapper with lazy loading and connection reuse."""
 
     TMDB_BASE = "https://api.themoviedb.org/3"
 
@@ -87,7 +94,7 @@ class MovieSearchTool:
 
     def _get(self, endpoint: str, params: dict = None) -> dict:
         """Make authenticated GET request to TMDB.
-        Retries up to 3 times with verify=False fallback for SSL issues."""
+        Uses persistent session for connection reuse. Retries up to 5 times."""
         api_key = self._get_api_key()
         params = params or {}
         params["api_key"] = api_key
@@ -95,27 +102,89 @@ class MovieSearchTool:
         url = f"{self.TMDB_BASE}{endpoint}"
 
         last_error = None
-        for attempt in range(3):
+        for attempt in range(5):
             try:
-                resp = requests.get(url, params=params, timeout=15, verify=False)
+                resp = _session.get(url, params=params, timeout=15)
                 resp.raise_for_status()
                 return resp.json()
             except (requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
                 last_error = e
-                time.sleep(0.5 * (attempt + 1))
+                time.sleep(1 * (attempt + 1))
 
         raise last_error
 
-    def search(self, query: str, max_results: int = 5) -> str:
-        """Search movies by title or keywords."""
-        try:
-            data = self._get("/search/movie", {"query": query})
-        except requests.exceptions.RequestException as e:
-            return f"Movie search failed: {type(e).__name__}: {e}"
-
+    def _search_person_movies(self, query: str, max_results: int) -> str:
+        """Search for a person (director/actor) and return their movies."""
+        data = self._get("/search/person", {"query": query})
         results = data.get("results", [])
         if not results:
-            return "No movies found. Try different search terms."
+            return None
+
+        person = results[0]
+        person_name = person.get("name", query)
+        known_for = person.get("known_for", [])
+
+        # Get full filmography via person credits
+        person_id = person.get("id")
+        if person_id:
+            try:
+                credits = self._get(f"/person/{person_id}/movie_credits")
+                # Combine cast and crew, prefer crew (directing) for directors
+                crew_movies = [m for m in credits.get("crew", []) if m.get("job") == "Director"]
+                cast_movies = credits.get("cast", [])
+
+                # Use director credits if available, otherwise cast
+                movies = crew_movies if crew_movies else cast_movies
+
+                # Sort by rating (weighted by vote count)
+                movies.sort(key=lambda m: m.get("vote_average", 0) * min(m.get("vote_count", 0), 1000), reverse=True)
+            except Exception:
+                # Fall back to known_for from search
+                movies = known_for
+        else:
+            movies = known_for
+
+        if not movies:
+            return None
+
+        lines = [f"Films by {person_name}:\n"]
+        for i, movie in enumerate(movies[:max_results], 1):
+            title = movie.get("title", "Unknown")
+            year = movie.get("release_date", "")[:4] or "N/A"
+            rating = movie.get("vote_average", 0)
+            votes = movie.get("vote_count", 0)
+            overview = movie.get("overview", "No overview available.")
+            movie_id = movie.get("id", "")
+
+            if len(overview) > 200:
+                overview = overview[:200] + "..."
+
+            stars = f"{rating}/10 ({votes:,} votes)" if votes > 0 else "No ratings yet"
+
+            lines.append(
+                f"[{i}] {title} ({year}) — {stars}\n"
+                f"    {overview}\n"
+                f"    TMDB ID: {movie_id}"
+            )
+
+        return "\n\n".join(lines)
+
+    def search(self, query: str, max_results: int = 5) -> str:
+        """Search movies by title, keywords, or person name."""
+        try:
+            # First try movie title search
+            data = self._get("/search/movie", {"query": query})
+            results = data.get("results", [])
+
+            # If no movie results, try person search (director/actor name)
+            if not results:
+                person_result = self._search_person_movies(query, max_results)
+                if person_result:
+                    return person_result
+                return "No movies found. Try different search terms."
+
+        except requests.exceptions.RequestException as e:
+            return f"Movie search failed: {type(e).__name__}: {e}"
 
         lines = []
         for i, movie in enumerate(results[:max_results], 1):
@@ -162,9 +231,11 @@ class MovieSearchTool:
         cast = credits.get("cast", [])[:10]
         cast_str = ", ".join(f"{a['name']} as {a['character']}" for a in cast)
 
-        # Director
+        # Director + Cinematographer
         crew = credits.get("crew", [])
         directors = [c["name"] for c in crew if c.get("job") == "Director"]
+        dps = [c["name"] for c in crew if c.get("job") == "Director of Photography"]
+        composers = [c["name"] for c in crew if c.get("job") in ("Original Music Composer", "Music")]
         director_str = ", ".join(directors) if directors else "Unknown"
 
         lines = [
@@ -175,6 +246,10 @@ class MovieSearchTool:
             f"Rating: {rating}/10 ({votes:,} votes)",
         ]
 
+        if dps:
+            lines.append(f"Cinematographer: {', '.join(dps)}")
+        if composers:
+            lines.append(f"Composer: {', '.join(composers)}")
         if tagline:
             lines.append(f'Tagline: "{tagline}"')
         if budget > 0:
